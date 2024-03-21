@@ -39,8 +39,6 @@ fig_line_color = px.line(countryPerCap_sorted,
                       title = 'GDP per Capita by Country Through the Years')
 
 # %%
-app = Dash(__name__, external_stylesheets=stylesheets)  #initialize the app
-
 years = df.columns[1:]   #set aside this list for the years
 
 app.layout = html.Div([    
