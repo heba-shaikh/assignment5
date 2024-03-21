@@ -25,7 +25,7 @@ countryPerCap = df.melt(id_vars = 'country',
 # Convert 'gdpPercap' column to numeric
 countryPerCap['gdpPercap'] = pd.to_numeric(countryPerCap['gdpPercap'], errors='coerce')
 
-# Drop rows with NaN values in 'gdpPercap' column
+# Drop rows with na's
 countryPerCap = countryPerCap.dropna(subset=['gdpPercap'])
 
 # Sort the pivot table by GDP per Capita
@@ -55,7 +55,7 @@ app.layout = html.Div([
 
     dcc.RangeSlider(    #use dcc to create range slider 
         id='year-slider',  #ID tag for range slider
-        marks={int(min(years)): str(int(min(years))), int(max(years)): str(int(max(years)))},   #shows markings on slider as minimum and maximum years from the dataframe
+        marks={year: str(year) for year in range(int(min(years)), int(max(years))+1, 50)},  #shows markings on slider as minimum and maximum years from the dataframe
         min=int(min(years)),   #minimum as minimum from df years list
         max=int(max(years)),    #maximum as maximum from df years list
         step=1,   #steps up by 1
@@ -76,33 +76,33 @@ app.layout = html.Div([
     [Input('country-dropdown', 'value'),
      Input('year-slider', 'value')]
 )
-def update_line_chart(selected_countries, selected_years):
+def update_chart(countries, years):
     # Convert selected years to integers because they were strings
-    selected_years = [int(year) for year in selected_years]
+    years = [int(year) for year in years]
     
     # Filter DataFrame based on selected years
-    filtered_df = countryPerCap_sorted[(countryPerCap_sorted['year'].astype(int) >= selected_years[0]) & (countryPerCap_sorted['year'].astype(int) <= selected_years[1])]
+    filtered_df = countryPerCap_sorted[(countryPerCap_sorted['year'].astype(int) >= years[0]) & (countryPerCap_sorted['year'].astype(int) <= years[1])]
     
     # Filter DataFrame based on selected countries if any are selected
-    if selected_countries:
-        filtered_df = filtered_df[filtered_df['country'].isin(selected_countries)]
+    if countries:
+        filtered_df = filtered_df[filtered_df['country'].isin(countries)]
     
-    # Create traces for each selected country
-    traces = []
+    # Create list of year/lines/gdpPerCap based on filtered df
+    lines = []
     if not filtered_df.empty:
         for country in filtered_df['country'].unique():
             country_data = filtered_df[filtered_df['country'] == country]
-            trace = dict(
+            line = dict(
                 x=country_data['year'],
                 y=country_data['gdpPercap'],
                 mode='lines',
                 name=country
             )
-            traces.append(trace)
+            lines.append(line)
 
     # Return updated figure
         return {
-            'data': traces,
+            'data': lines,
             'layout': dict(
                 title='GDP per Capita by Country Through the Years',
                 xaxis={'title': 'Year'},
